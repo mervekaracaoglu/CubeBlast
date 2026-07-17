@@ -20,7 +20,7 @@ with no manual setup.
 The **Dream Games** menu in the editor toolbar contains the level progress
 tools required by the case study:
 
-* **Set Last Played Level...** — window with a slider to set the persisted
+* **Set Last Played Level...** window with a slider to set the persisted
   last played level number (setting it to 11 marks all levels finished).
 * **Reset Progress (Level 1)** and **Mark All Levels Finished** shortcuts.
 
@@ -49,7 +49,7 @@ Assets/Scripts
 
 **How a turn flows:** the scene controller converts a tap to a grid cell and
 calls `BoardEngine.Tap`. The engine resolves the entire turn synchronously and
-returns a `TurnResult` — an ordered list of steps (blast, combo gather,
+returns a `TurnResult`, an ordered list of steps (blast, combo gather,
 explosions with chain waves, gravity/spawns, shuffle) describing exactly what
 happened. The controller then plays those steps back as animations. This keeps
 every gameplay rule in one testable place and makes the visuals a pure
@@ -58,14 +58,13 @@ function of the simulation.
 **OOP notes:** items form a polymorphic hierarchy (`BoardItem` →
 `CubeItem` / `SpecialItem` / `ObstacleItem`). Each obstacle implements its own
 damage rules (`ApplyBlastDamage` / `ApplyExplosionDamage`), so adding a new
-obstacle or special item means adding one core class and one view class — no
-switch statements to hunt down. All tuning values live in `GameRules`.
+obstacle or special item means adding one core class and one view class, there are no switch statements. All tuning values live in `GameRules`.
 
 ## Gameplay rules implemented
 
 * Tap 2+ adjacent same-colored cubes to blast them; a move is spent only on
   valid taps. Groups of 4–5 create a Rocket (random orientation), 6+ create a
-  TNT, at the tapped cell — and eligible groups display the matching item logo
+  TNT, at the tapped cell and eligible groups display the matching item logo
   as a hint.
 * All falling is implemented in code (no physics, no Unity animations):
   items fall straight down, never through other items, and new random cubes
@@ -78,8 +77,8 @@ switch statements to hunt down. All tuning values live in `GameRules`.
   rocket(s) → a 3x3 array of rockets clearing three rows and three columns.
 * Obstacles: **Vase** (2 hits, max one per blast, falls), **Stone** (special
   item damage only, static), **Chalice Box** (static 2x2; door phase takes
-  exactly 1 damage per source; afterwards every point of damage — explosion
-  cells covered or adjacent blast cubes — collects one chalice; 10 chalices
+  exactly 1 damage per source; afterwards every point of damage, explosion
+  cells covered or adjacent blast cubes, collects one chalice; 10 chalices
   clear it).
 * Win → celebration particles/animation, then back to the MainScene with the
   next level persisted. Lose → fail popup with Close (main menu) and Try Again
@@ -87,20 +86,15 @@ switch statements to hunt down. All tuning values live in `GameRules`.
 
 ## Design assumptions
 
-The case study leaves two Chalice Box details open, both kept as named
-constants in `GameRules.cs`:
+The case study leaves a Chalice Box detail open, which is kept as named
+constant in `GameRules.cs`:
 
 * `ChaliceBoxDoorHealth = 1` — the door takes exactly 1 damage per source;
   its durability is not specified, so it is tunable. The value was chosen by
-  simulating the shipped levels with a greedy bot player over the core engine:
-  door durability of 3 drops the win rate of the four-box levels (3 and 9)
-  to ~0-2%, while 1 keeps them challenging but winnable.
-* `ChalicesPerBox = 10` — "Collect 10 chalices" is read as per box, since
-  levels contain up to four boxes.
+  observing the Royal Kingdom gameplay.
 
 For combos, each primitive explosion (every rocket of a combo, every TNT
-area) counts as its own damage source, matching the reference games — e.g. a
-vase caught at the intersection of a TNT-Rocket combo is cleared outright.
+area) counts as its own damage source, matching the reference games.
 
 As a small extra, the engine reshuffles the cubes if the board ever has no
 valid move left.
@@ -110,4 +104,4 @@ valid move left.
 The core simulation is fully covered by a standalone test harness (see
 `Tests~/README.md`): targeted tests for every mechanic above plus 300 random
 playthroughs of the shipped 10 levels with board-consistency invariants
-verified after every move — around 100,000 assertions in total.
+verified after every move, around 100,000 assertions in total.
